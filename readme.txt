@@ -1,6 +1,12 @@
 macOS Unlocker V3.0 for VMware Workstation
 ==========================================
 
+0. Task
+
+    [+] Fix tools file download failure.
+    - Add -t | --target to assign the tools version.
+    - Add -c | --cache to assign to use local tools in `./tools/`
+
 +-----------------------------------------------------------------------------+
 | IMPORTANT:                                                                  |
 | ==========                                                                  |
