@@ -25,7 +25,7 @@ THE SOFTWARE.
 
 from __future__ import print_function
 import os
-import sys
+import sys, getopt
 import shutil
 import tarfile
 import zipfile
@@ -72,7 +72,23 @@ def convertpath(path):
     return path.replace(os.path.sep, '/')
 
 
-def main():
+def main(argv):
+    # parse argv
+    target = ''
+    cache = False
+    try:
+        opts, args = getopt.getopt(argv, 'ht:c', ['help', 'target=', 'cache'])
+    except getopt.GetoptError:
+        print('Error: ***.py -t <target_version>')
+        print('   or: ***.py --target=<target_version>')
+    for opt, arg in opts:
+        if opt in ('-h', '--help'):
+            print('Usage: ***.py -t <target_version>')
+            print('   or: ***.py --target=<target_version>')
+        elif opt in ('-t', '--target'):
+            target = arg
+        elif opt in ('-c', '--cache'):
+            cache = True
     # Check minimal Python version is 2.7
     if sys.version_info < (2, 7):
         sys.stderr.write('You need Python 2.7 or later\n')
@@ -83,8 +99,9 @@ def main():
     dest = os.path.dirname(os.path.abspath(__file__))
 
     # Re-create the tools folder
-    shutil.rmtree(dest + '/tools', True)
-    os.mkdir(dest + '/tools')
+    if not cache:
+        shutil.rmtree(dest + '/tools', True)
+        os.mkdir(dest + '/tools')
 
     # Get the list of Fusion releases
     # And get the last item in the ul/li tags
@@ -92,7 +109,10 @@ def main():
     html = response.read()
     parser = CDSParser()
     parser.feed(str(html))
-    url = url + parser.HTMLDATA[-1] + '/'
+    if target == '':
+        url = url + parser.HTMLDATA[-1] + '/'
+    else:
+        url = url + target + '/'
     parser.clean()
 
     # Open the latest release page
@@ -106,7 +126,8 @@ def main():
 
     # Download the darwin.iso tgz file
     print('Retrieving Darwin tools from: ' + urlpost15)
-    urlretrieve(urlpost15, convertpath(dest + '/tools/com.vmware.fusion.tools.darwin.zip.tar'))
+    if not cache:
+        urlretrieve(urlpost15, convertpath(dest + '/tools/com.vmware.fusion.tools.darwin.zip.tar'))
 
     # Extract the tar to zip
     tar = tarfile.open(convertpath(dest + '/tools/com.vmware.fusion.tools.darwin.zip.tar'), 'r')
@@ -125,12 +146,14 @@ def main():
 
     # Cleanup working files and folders
     shutil.rmtree(convertpath(dest + '/tools/payload'), True)
-    os.remove(convertpath(dest + '/tools/com.vmware.fusion.tools.darwin.zip.tar'))
+    if not cache:
+        os.remove(convertpath(dest + '/tools/com.vmware.fusion.tools.darwin.zip.tar'))
     os.remove(convertpath(dest + '/tools/com.vmware.fusion.tools.darwin.zip'))
 
     # Download the darwinPre15.iso tgz file
     print('Retrieving DarwinPre15 tools from: ' + urlpre15)
-    urlretrieve(urlpre15, convertpath(dest + '/tools/com.vmware.fusion.tools.darwinPre15.zip.tar'))
+    if not cache:
+        urlretrieve(urlpre15, convertpath(dest + '/tools/com.vmware.fusion.tools.darwinPre15.zip.tar'))
 
     # Extract the tar to zip
     tar = tarfile.open(convertpath(dest + '/tools/com.vmware.fusion.tools.darwinPre15.zip.tar'), 'r')
@@ -151,9 +174,10 @@ def main():
 
     # Cleanup working files and folders
     shutil.rmtree(convertpath(dest + '/tools/payload'), True)
-    os.remove(convertpath(dest + '/tools/com.vmware.fusion.tools.darwinPre15.zip.tar'))
+    if not cache:
+        os.remove(convertpath(dest + '/tools/com.vmware.fusion.tools.darwinPre15.zip.tar'))
     os.remove(convertpath(dest + '/tools/com.vmware.fusion.tools.darwinPre15.zip'))
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
