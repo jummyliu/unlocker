@@ -18,7 +18,8 @@ for /F "tokens=2* delims=	 " %%A in ('REG QUERY %KeyName% /v InstallPath') do se
 echo VMware is installed at: %InstallPath%
 
 echo Getting VMware Tools...
-gettools.exe
+py gettools.py --target=11.1.0
+REM gettools.exe
 xcopy /F /Y .\tools\darwin*.* "%InstallPath%"
 
 popd
